@@ -1,74 +1,90 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
-	"github.com/MediaMath/gocov/packages"
-	"github.com/MediaMath/gocov/relative"
 	"github.com/pkg/browser"
 )
 
 func main() {
-	wd, wdErr := os.Getwd()
+	outputDir := flag.String("o", "", "If provided output files will be written to this dir and not opened.")
+	short := flag.Bool("short", false, "Run only short tests.")
+	keepProfile := flag.Bool("keep", false, "Will not remove coverage profile files if set.")
+	flag.Parse()
 
-	if wdErr != nil {
-		log.Fatal(wdErr)
+	config, confErr := Config(*outputDir, *short, *keepProfile)
+	if confErr != nil {
+		log.Fatalf("Configuration Error: %v", confErr)
 	}
 
-	outputFiles, outputErr := existingDirOutputFiles(filepath.Join(wd, "tmp", "coverage2"))
-	if outputErr != nil {
-		log.Fatal(outputErr)
+	paths, pathErr := toPaths(flag.Args())
+	if pathErr != nil {
+		log.Fatalf("Paths Error: %v", pathErr)
 	}
 
-	conf := config{true, true, outputFiles, false, false}
-	err := gocovForAll(conf, wd, []string{wd})
-	if err != nil {
-		log.Fatal(err)
+	if coverErr := CoverPaths(config, Exec(), paths); coverErr != nil {
+		log.Fatalf("Coverage Error: %v", coverErr)
 	}
-
 }
 
-type config struct {
-	recurse     bool
-	browser     bool
-	output      outputFiles
-	short       bool
-	keepProfile bool
+func toPaths(args []string) ([]PackagePath, error) {
+	paths := make([]PackagePath, 0)
+	for _, arg := range args {
+		paths = append(paths, PackagePath(arg))
+	}
+	return paths, nil
 }
 
-func gocovForAll(conf config, wd string, paths []string) error {
-	packs, getErr := packages.GetAll(conf.recurse, paths...)
-	if getErr != nil {
-		return getErr
+type PackagePath string
+type Package interface {
+	FlatName() string
+	Name() string
+}
+
+type Go interface {
+	GetPackages(paths []PackagePath) ([]Package, error)
+	CoverageProfile(pack Package, short bool, profilePath string) (bool, error)
+	CoverageReport(profilePath string, reportPath string) error
+}
+
+func CoverPaths(conf *GoCovConfig, goCmd Go, paths []PackagePath) error {
+	packs, pathErr := goCmd.GetPackages(paths)
+	if pathErr != nil {
+		return pathErr
 	}
 
 	for _, pack := range packs {
-		gocovForPack(conf, wd, pack)
+		if err := CoverPackage(conf, goCmd, pack); err != nil {
+			return nil
+		}
 	}
 
 	return nil
 }
 
-func gocovForPack(conf config, wd string, pack string) error {
-	rel := relative.To(pack, wd)
-
-	out := conf.output.profile(rel.FlatName())
-	if !conf.keepProfile {
+func CoverPackage(conf *GoCovConfig, goCmd Go, pack Package) error {
+	out := conf.OutputDir.profile(pack.FlatName())
+	if !conf.KeepProfile {
 		defer os.Remove(out)
 	}
 
-	covered, coverErr := buildProfile(fmt.Sprintf("./%v", rel.Path()), out)
+	covered, coverErr := goCmd.CoverageProfile(pack, conf.ShortTests, out)
 	if coverErr != nil {
 		return coverErr
 	}
 
 	if covered {
-		htmlF := conf.output.html(rel.FlatName())
-		buildReport(out, htmlF)
-		if conf.browser {
+		htmlF := conf.OutputDir.html(pack.FlatName())
+		if reportErr := goCmd.CoverageReport(out, htmlF); reportErr != nil {
+			fmt.Printf("RPTERR %v", reportErr)
+			return reportErr
+		}
+
+		if conf.OpenInBrowser {
+			fmt.Printf("HTML %v", htmlF)
 			browser.OpenFile(htmlF)
 		}
 	}
