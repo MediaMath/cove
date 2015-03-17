@@ -1,29 +1,32 @@
-Dependencies:
+# Cove - Libraries & CLI's that wrap the go command.
+
+This is a small set of wrapper libraries and cli's that wrap around the golang go command.
+
+## Runtime dependencies
+
+Unlike most go projects this one does have a dependency on the go development environment.  It will not work with just the runtime.
+
+## cvr - wrapper around go code coverage.
+
+The go code coverage facility is one of the few that does not respond well to path traversals.  This tool provides an ability to:
+
+- Open go coverage reports in a web browser from the command line in 1 command.
+- Generate go coverage reports for multiple projects that match query paths in 1 go. 
+
+Run in a go project directory, this will generate and open the go coverage html report in  the configured web browser:
 
 ```bash
-go get github.com/pkg/browser
+cvr
 ```
 
-gocov [FILEGLOBS] - fileglobs that turn to directories, if nothing provided it is wd:
+Run in any directory, this will create a list of html coverage reports in the specified output directory.
 
-Args:
+```bash
+cvr -o=path/to/some/dir github.com/MediaMath/... 
+```
 
-- -r - recurse - if set will add all packages sub directories to the packages to cover.
-- --no-browser - If set will skip opening html files in browser.  Defaults to not set.  If not on a term will be set. 
-- -o - output dir - if set html output will be put in this dir.  Defaults to a temporary dir.  If not on a term will be overriden to wd. 
-- -short - if set only short tests will be run, defaults to false.
-- -p -- if true will not delete the coverage profile files. Defaults to false.
+### To Install cv
 
-St Out:
-- regular test output.
-
-Std Err:
-- any errors encountered or if no coverage for a package specified.
-
-Exit Code:
-- 0 - No errors and all packages specified have coverage
-- 9 - No errors but at least 1 package specified does not have coverage
-- OTHER - Errors
-
-
-
+```bash
+go install github.com/MediaMath/cove/cvr
+```
