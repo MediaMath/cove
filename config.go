@@ -10,9 +10,9 @@ type GoCovConfig struct {
 func Config(outputDir string, short bool, keep bool) (*GoCovConfig, error) {
 	if outputDir == "" {
 		return BrowserConfig(short, keep)
-	} else {
-		return OutputConfig(outputDir, short, keep)
 	}
+
+	return OutputConfig(outputDir, short, keep)
 }
 
 func BrowserConfig(short bool, keep bool) (*GoCovConfig, error) {
