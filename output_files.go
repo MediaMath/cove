@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 )
 
-type outputFiles interface {
+type OutputFiles interface {
 	profile(string) string
 	html(string) string
 }
 
 type existingDir string
 
-func tempOutputFiles() (outputFiles, error) {
+func TempOutputFiles() (OutputFiles, error) {
 	tempDir, err := ioutil.TempDir("", "gocov")
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func tempOutputFiles() (outputFiles, error) {
 	return existingDir(tempDir), nil
 }
 
-func existingDirOutputFiles(path string) (outputFiles, error) {
+func ExistingDirOutputFiles(path string) (OutputFiles, error) {
 	if err := os.MkdirAll(path, 0644); err != nil {
 		return nil, err
 	}
