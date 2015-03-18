@@ -15,7 +15,7 @@ type OutputFiles interface {
 type existingDir string
 
 func TempOutputFiles() (OutputFiles, error) {
-	tempDir, err := ioutil.TempDir("", "gocov")
+	tempDir, err := ioutil.TempDir("", "cvr")
 	if err != nil {
 		return nil, err
 	}
