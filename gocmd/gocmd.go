@@ -1,3 +1,4 @@
+// gocmd package is a then wrapper around calling 'go ...' commands.
 package gocmd
 
 import (
@@ -8,16 +9,23 @@ import (
 	"os/exec"
 )
 
-type GoCmd struct {
+type GoCmd interface {
+	//Receive is a bar
+	Receive(action func(io.Reader) error) error
+	StdOutLines() ([]string, error)
+}
+
+type goCmd struct {
 	*exec.Cmd
 }
 
-func Go(sub string, args ...string) *GoCmd {
+//Go takes the sub and args and prepares a command like 'go sub arg1 arg2...'
+func Go(sub string, args ...string) GoCmd {
 	arguments := append([]string{sub}, args...)
-	return &GoCmd{exec.Command("go", arguments...)}
+	return &goCmd{exec.Command("go", arguments...)}
 }
 
-func (cmd *GoCmd) Receive(action func(io.Reader) error) error {
+func (cmd *goCmd) Receive(action func(io.Reader) error) error {
 	stdout, stdOutErr := cmd.StdoutPipe()
 	if stdOutErr != nil {
 		return stdOutErr
@@ -39,7 +47,7 @@ func (cmd *GoCmd) Receive(action func(io.Reader) error) error {
 	return NewGoError(cmd.Wait(), NewStdError(stderr))
 }
 
-func (cmd *GoCmd) StdOutLines() ([]string, error) {
+func (cmd *goCmd) StdOutLines() ([]string, error) {
 	results := make([]string, 0)
 	err := cmd.Receive(func(stdout io.Reader) error {
 		var scanerr error
