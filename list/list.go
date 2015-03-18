@@ -6,27 +6,6 @@ import (
 	"strings"
 )
 
-func execList(args ...string) *exec.Cmd {
-	arguments := append([]string{"list"}, args...)
-	return exec.Command("go", arguments...)
-}
-
-func listOutput(cmd *exec.Cmd) ([]string, error) {
-	out, err := cmd.Output()
-	return filterEmpty(strings.Split(strings.TrimSpace(fmt.Sprintf("%s", out)), "\n")), err
-}
-
-func filterEmpty(sl []string) []string {
-	filtered := make([]string, 0)
-	for _, s := range sl {
-		if strings.TrimSpace(s) != "" {
-			filtered = append(filtered, s)
-		}
-	}
-
-	return filtered
-}
-
 func Query(paths ...string) (map[string]string, []error) {
 	cmd, err := listQueryTemplate(paths...)
 	if err != nil {
@@ -67,4 +46,25 @@ func queryParse(result string) (string, string, error) {
 	}
 
 	return split[0], split[1], err
+}
+
+func execList(args ...string) *exec.Cmd {
+	arguments := append([]string{"list"}, args...)
+	return exec.Command("go", arguments...)
+}
+
+func listOutput(cmd *exec.Cmd) ([]string, error) {
+	out, err := cmd.Output()
+	return filterEmpty(strings.Split(strings.TrimSpace(fmt.Sprintf("%s", out)), "\n")), err
+}
+
+func filterEmpty(sl []string) []string {
+	filtered := make([]string, 0)
+	for _, s := range sl {
+		if strings.TrimSpace(s) != "" {
+			filtered = append(filtered, s)
+		}
+	}
+
+	return filtered
 }
