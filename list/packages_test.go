@@ -1,9 +1,6 @@
 package list
 
-import (
-	"fmt"
-	"sort"
-)
+import "fmt"
 
 func ExamplePackages_single() {
 
@@ -20,7 +17,6 @@ func ExamplePackages_single() {
 func ExamplePackages_wildcard() {
 	packs, _ := Packages("text/...")
 
-	sort.Strings(packs)
 	for _, pack := range packs {
 		fmt.Println(pack)
 	}
@@ -35,7 +31,6 @@ func ExamplePackages_wildcard() {
 func ExamplePackages_multiples() {
 	packs, _ := Packages("text/...", "os/exec")
 
-	sort.Strings(packs)
 	for _, pack := range packs {
 		fmt.Println(pack)
 	}
@@ -52,7 +47,6 @@ func ExamplePackages_relative() {
 	//duplicates are filtered
 	packs, _ := Packages(".")
 
-	sort.Strings(packs)
 	for _, pack := range packs {
 		fmt.Println(pack)
 	}
@@ -64,7 +58,6 @@ func ExamplePackages_relative() {
 func ExamplePackages_unknown() {
 	packs, err := Packages("foo/manchu", "text/...", "moo/...")
 
-	sort.Strings(packs)
 	for _, pack := range packs {
 		fmt.Println(pack)
 	}
@@ -84,7 +77,6 @@ func ExamplePackages_unknown() {
 func ExamplePackages_unknown2() {
 	packs, err := Packages("foo/manchu")
 
-	sort.Strings(packs)
 	for _, pack := range packs {
 		fmt.Println(pack)
 	}
