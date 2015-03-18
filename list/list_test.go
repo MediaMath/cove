@@ -3,6 +3,8 @@ package list
 import (
 	"reflect"
 	"testing"
+
+	"github.com/MediaMath/cove/gocmd"
 )
 
 type JsonResponse struct {
@@ -14,7 +16,7 @@ type JsonResponse struct {
 func TestSinglePathResultJson(t *testing.T) {
 	var info JsonResponse
 
-	if err := jsonResponse(execList("-json", "os/exec"), &info); err != nil {
+	if err := Json("os/exec", &info); err != nil {
 		t.Fatal(err)
 	}
 
@@ -26,59 +28,55 @@ func TestSinglePathResultJson(t *testing.T) {
 func TestMultiplePathResultJson(t *testing.T) {
 	//go list returns invalid json in the multiple return case.  Thanks Obama!
 	resp := make([]JsonResponse, 0)
-	if err := jsonResponse(execList("-json", "os/..."), &resp); err == nil {
+	if err := Json("os/...", &resp); err == nil {
 		t.Errorf("Should have failed.")
 	}
 }
 
 func TestSingleUnknownResultJson(t *testing.T) {
 	var info JsonResponse
-	if err := jsonResponse(execList("-e", "-json", "os/moo"), &info); err != nil {
-		t.Fatal(err)
-	}
-
-	if info.Incomplete != true {
-		t.Errorf("%v", info)
+	if err := Json("os/moo", &info); err == nil {
+		t.Errorf("Should have failed.")
 	}
 }
 
 func TestSinglePathResult(t *testing.T) {
-	cmd, err := listResponse(execList("os/exec"))
+	cmd, err := gocmd.Go("list", "os/exec").StdOutLines()
 	if !eq(cmd, sl("os/exec")) {
 		t.Errorf("|%v|%v|", cmd, err)
 	}
 }
 
 func TestMultiPathResult(t *testing.T) {
-	cmd, err := listResponse(execList("os/..."))
+	cmd, err := gocmd.Go("list", "os/...").StdOutLines()
 	if !eq(cmd, sl("os", "os/exec", "os/signal", "os/user")) {
 		t.Errorf("|%v|%v|", cmd, err)
 	}
 }
 
 func TestFailPathResult(t *testing.T) {
-	cmd, err := listResponse(execList("os/foodog"))
+	cmd, err := gocmd.Go("list", "os/foodog").StdOutLines()
 	if len(cmd) > 0 || err == nil {
 		t.Errorf("|%v|%v|", cmd, err)
 	}
 }
 
 func TestFailPathResultWithPassingToo(t *testing.T) {
-	cmd, err := listResponse(execList("os/foodog", "os/signal"))
+	cmd, err := gocmd.Go("list", "os/foodog", "os/signal").StdOutLines()
 	if !eq(cmd, sl("os/signal")) || err == nil {
 		t.Errorf("|%v|%v|", cmd, err)
 	}
 }
 
 func TestFailPathResultWithErrorsOff(t *testing.T) {
-	cmd, err := listResponse(execList("-e", "os/foodog"))
+	cmd, err := gocmd.Go("list", "-e", "os/foodog").StdOutLines()
 	if !eq(cmd, sl("os/foodog")) || err != nil {
 		t.Errorf("|%v|%v|", cmd, err)
 	}
 }
 
 func TestFailPathResultWithPassingTooWithErrorsOff(t *testing.T) {
-	cmd, err := listResponse(execList("-e", "os/foodog", "os/signal"))
+	cmd, err := gocmd.Go("list", "-e", "os/foodog", "os/signal").StdOutLines()
 	if !eq(cmd, sl("os/foodog", "os/signal")) || err != nil {
 		t.Errorf("|%v|%v|", cmd, err)
 	}
