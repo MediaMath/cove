@@ -6,8 +6,8 @@ import (
 	"io"
 )
 
-func ExampleGoCmdReceive() {
-	Go("list", "os/exec", "text/...").Receive(func(stdout io.Reader) error {
+func ExamplePrepare_receive() {
+	Prepare("list", "os/exec", "text/...").Receive(func(stdout io.Reader) error {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			fmt.Println(scanner.Text())
@@ -24,8 +24,8 @@ func ExampleGoCmdReceive() {
 	//text/template/parse
 }
 
-func ExampleGoCmdStdOutLines() {
-	out, _ := Go("list", "os/exec", "text/...").StdOutLines()
+func ExamplePrepare_stdout() {
+	out, _ := Prepare("list", "os/exec", "text/...").StdOutLines()
 
 	for _, k := range out {
 		fmt.Println(k)

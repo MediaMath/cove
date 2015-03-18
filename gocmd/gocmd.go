@@ -1,4 +1,4 @@
-// gocmd package is a then wrapper around calling 'go ...' commands.
+// Package gocmd is a thin wrapper around calling 'go ...' commands.
 package gocmd
 
 import (
@@ -9,8 +9,8 @@ import (
 	"os/exec"
 )
 
+//A GoCmd is not actually run until one of the functions on the GoCmd interface is called.
 type GoCmd interface {
-	//Receive is a bar
 	Receive(action func(io.Reader) error) error
 	StdOutLines() ([]string, error)
 }
@@ -19,8 +19,8 @@ type goCmd struct {
 	*exec.Cmd
 }
 
-//Go takes the sub and args and prepares a command like 'go sub arg1 arg2...'
-func Go(sub string, args ...string) GoCmd {
+//Prepare takes the sub and args and prepares a command like 'go sub arg1 arg2...'
+func Prepare(sub string, args ...string) GoCmd {
 	arguments := append([]string{sub}, args...)
 	return &goCmd{exec.Command("go", arguments...)}
 }
@@ -44,11 +44,11 @@ func (cmd *goCmd) Receive(action func(io.Reader) error) error {
 		return err
 	}
 
-	return NewGoError(cmd.Wait(), NewStdError(stderr))
+	return newGoError(cmd.Wait(), newStdError(stderr))
 }
 
 func (cmd *goCmd) StdOutLines() ([]string, error) {
-	results := make([]string, 0)
+	var results []string
 	err := cmd.Receive(func(stdout io.Reader) error {
 		var scanerr error
 		results, scanerr = scanReader(stdout)
@@ -59,7 +59,7 @@ func (cmd *goCmd) StdOutLines() ([]string, error) {
 }
 
 func scanReader(reader io.Reader) ([]string, error) {
-	results := make([]string, 0)
+	var results []string
 
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
@@ -69,6 +69,7 @@ func scanReader(reader io.Reader) ([]string, error) {
 	return results, scanner.Err()
 }
 
+//GoError is returned when a go command fails during its execution.
 type GoError struct {
 	Exit   *exec.ExitError
 	StdErr *StdError
@@ -78,7 +79,7 @@ func (s *GoError) Error() string {
 	return fmt.Sprintf("%v\n%v", s.Exit, s.StdErr)
 }
 
-func NewGoError(err error, stdErr *StdError) error {
+func newGoError(err error, stdErr *StdError) error {
 	if exitErr, ok := err.(*exec.ExitError); ok {
 		return &GoError{exitErr, stdErr}
 	}
@@ -86,6 +87,7 @@ func NewGoError(err error, stdErr *StdError) error {
 	return err
 }
 
+//StdError is returned anytime a go command prints to stderr during execution.
 type StdError struct {
 	Output string
 }
@@ -94,14 +96,14 @@ func (s *StdError) Error() string {
 	return s.Output
 }
 
-func NewStdError(stderr io.Reader) *StdError {
+func newStdError(stderr io.Reader) *StdError {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(stderr)
 	s := buf.String()
 
 	if s != "" {
 		return &StdError{s}
-	} else {
-		return nil
 	}
+
+	return nil
 }
