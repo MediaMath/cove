@@ -25,7 +25,7 @@ Run in any directory, this will create a list of html coverage reports in the sp
 cvr -o=path/to/some/dir github.com/MediaMath/... 
 ```
 
-### To Install cv
+### To Install cvr
 
 ```bash
 go install github.com/MediaMath/cove/cvr
