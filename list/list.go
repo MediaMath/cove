@@ -1,52 +1,18 @@
 package list
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os/exec"
 	"strings"
 )
 
-func Query(paths ...string) (map[string]string, []error) {
-	cmd, err := listQueryTemplate(paths...)
-	if err != nil {
-		return map[string]string{}, []error{err}
-	}
-
-	errors := make([]error, 0)
-	results := make(map[string]string)
-	for _, res := range cmd {
-		path, dir, parseErr := queryParse(res)
-		if parseErr != nil {
-			errors = append(errors, parseErr)
-		} else {
-			results[path] = dir
-		}
-	}
-
-	return results, errors
-}
-
-func listQueryTemplate(paths ...string) ([]string, error) {
-	args := append([]string{"-e", "-f", "'{{ .ImportPath }}|{{ .Dir }}|{{ .Error }}'"}, paths...)
-	return listOutput(execList(args...))
-}
-
-func queryParse(result string) (string, string, error) {
-	result = strings.TrimPrefix(result, "'")
-	result = strings.TrimSuffix(result, "'")
-	split := strings.Split(result, "|")
-	if len(split) != 3 {
-		return "", "", fmt.Errorf("Unable to parse result: %v", result)
-	}
-
-	errString := split[2]
-	var err error
-	if errString != "<nil>" {
-		err = fmt.Errorf(errString)
-	}
-
-	return split[0], split[1], err
+func Packages(paths ...string) ([]string, error) {
+	cmd, err := listResponse(execList(paths...))
+	return cmd, err
 }
 
 func execList(args ...string) *exec.Cmd {
@@ -54,9 +20,77 @@ func execList(args ...string) *exec.Cmd {
 	return exec.Command("go", arguments...)
 }
 
-func listOutput(cmd *exec.Cmd) ([]string, error) {
-	out, err := cmd.Output()
-	return filterEmpty(strings.Split(strings.TrimSpace(fmt.Sprintf("%s", out)), "\n")), err
+func scanReader(reader io.Reader) ([]string, error) {
+	results := make([]string, 0)
+
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		results = append(results, scanner.Text())
+	}
+
+	return results, scanner.Err()
+}
+
+func listResponse(cmd *exec.Cmd) ([]string, error) {
+	results := make([]string, 0)
+
+	stdout, stdOutErr := cmd.StdoutPipe()
+	if stdOutErr != nil {
+		return results, stdOutErr
+	}
+
+	stderr, stdErrErr := cmd.StderrPipe()
+	if stdErrErr != nil {
+		return results, stdErrErr
+	}
+
+	if err := cmd.Start(); err != nil {
+		return results, err
+	}
+
+	results, scanOutErr := scanReader(stdout)
+	if scanOutErr != nil {
+		return results, scanOutErr
+	}
+
+	return results, NewExecError(cmd.Wait(), NewStdError(stderr))
+}
+
+type ExecError struct {
+	Exit   *exec.ExitError
+	StdErr *StdError
+}
+
+func (s *ExecError) Error() string {
+	return fmt.Sprintf("%v\n%v", s.Exit, s.StdErr)
+}
+
+func NewExecError(err error, stdErr *StdError) error {
+	if exitErr, ok := err.(*exec.ExitError); ok {
+		return &ExecError{exitErr, stdErr}
+	}
+
+	return err
+}
+
+type StdError struct {
+	Output string
+}
+
+func (s *StdError) Error() string {
+	return s.Output
+}
+
+func NewStdError(stderr io.Reader) *StdError {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stderr)
+	s := buf.String()
+
+	if s != "" {
+		return &StdError{s}
+	} else {
+		return nil
+	}
 }
 
 func jsonResponse(cmd *exec.Cmd, v interface{}) error {
