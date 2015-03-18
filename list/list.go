@@ -1,6 +1,7 @@
 package list
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -56,6 +57,27 @@ func execList(args ...string) *exec.Cmd {
 func listOutput(cmd *exec.Cmd) ([]string, error) {
 	out, err := cmd.Output()
 	return filterEmpty(strings.Split(strings.TrimSpace(fmt.Sprintf("%s", out)), "\n")), err
+}
+
+func jsonResponse(cmd *exec.Cmd, v interface{}) error {
+	stdout, stdOutErr := cmd.StdoutPipe()
+	if stdOutErr != nil {
+		return stdOutErr
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	if err := json.NewDecoder(stdout).Decode(v); err != nil {
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func filterEmpty(sl []string) []string {

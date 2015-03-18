@@ -5,6 +5,43 @@ import (
 	"testing"
 )
 
+type JsonResponse struct {
+	ImportPath string
+	Name       string
+	Incomplete bool
+}
+
+func TestSinglePathResultJson(t *testing.T) {
+	var info JsonResponse
+
+	if err := jsonResponse(execList("-json", "os/exec"), &info); err != nil {
+		t.Fatal(err)
+	}
+
+	if info.ImportPath != "os/exec" || info.Name != "exec" || info.Incomplete != false {
+		t.Errorf("%v", info)
+	}
+}
+
+func TestMultiplePathResultJson(t *testing.T) {
+	//go list returns invalid json in the multiple return case.  Thanks Obama!
+	resp := make([]JsonResponse, 0)
+	if err := jsonResponse(execList("-json", "os/..."), &resp); err == nil {
+		t.Errorf("Should have failed.")
+	}
+}
+
+func TestSingleUnknownResultJson(t *testing.T) {
+	var info JsonResponse
+	if err := jsonResponse(execList("-e", "-json", "os/moo"), &info); err != nil {
+		t.Fatal(err)
+	}
+
+	if info.Incomplete != true {
+		t.Errorf("%v", info)
+	}
+}
+
 func TestSinglePathResult(t *testing.T) {
 	cmd, err := listOutput(execList("os/exec"))
 	if !eq(cmd, sl("os/exec")) {
