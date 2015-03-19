@@ -10,10 +10,19 @@ import (
 )
 
 func ExampleCoverageProfile() {
-	testdir, _ := ioutil.TempDir("", "coverage-profile")
+	testdir, temperr := ioutil.TempDir("", "coverage-profile")
+
+	if temperr {
+		fmt.Printf("%v", temperr)
+	}
+
 	defer os.RemoveAll(testdir)
 
-	profile, _ := CoverageProfile(false, testdir, "text/scanner")
+	profile, profileErr := CoverageProfile(false, testdir, "text/scanner")
+	if profileErr {
+		fmt.Printf("%v", profileErr)
+	}
+
 	fmt.Println(profile)
 
 	//Output:
