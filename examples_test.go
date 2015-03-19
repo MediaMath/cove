@@ -14,7 +14,7 @@ func ExampleCoverageProfile() {
 	defer os.RemoveAll(testdir)
 
 	profile, _ := CoverageProfile(false, testdir, "text/scanner")
-	fmt.Println(filepath.Base(profile))
+	fmt.Println(profile)
 
 	//Output:
 	//text.scanner.out
