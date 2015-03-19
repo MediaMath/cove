@@ -35,9 +35,8 @@ func pipeWith(cmd *exec.Cmd, action func(io.Reader) error) error {
 		return stderrLinesErr
 	}
 
-	err := cmd.Wait()
-	gerr := newGoError(err, newStdError(stderrLines))
-	return gerr
+	err := newGoError(cmd.Wait(), stderrLines)
+	return err
 }
 
 func output(cmd *exec.Cmd) ([]string, error) {
@@ -65,40 +64,22 @@ func scanReader(reader io.Reader) ([]string, error) {
 //GoError is returned when a go command fails during its execution.
 type GoError struct {
 	Exit   *exec.ExitError
-	StdErr *StdError
+	StdErr []string
 }
 
 func (s *GoError) Error() string {
-	if s.StdErr != nil {
-		return s.StdErr.Error()
+	stderr := strings.Join(s.StdErr, "\n")
+	if stderr != "" {
+		return stderr
 	}
 
 	return s.Exit.Error()
 }
 
-func newGoError(err error, stdErr *StdError) error {
+func newGoError(err error, stderr []string) error {
 	if exitErr, ok := err.(*exec.ExitError); ok {
-		return &GoError{exitErr, stdErr}
+		return &GoError{exitErr, stderr}
 	}
 
 	return err
-}
-
-//StdError is returned anytime a go command prints to stderr during execution.
-type StdError struct {
-	Output string
-}
-
-func (s *StdError) Error() string {
-	return s.Output
-}
-
-func newStdError(lines []string) *StdError {
-	s := strings.Join(lines, "\n")
-
-	if s != "" {
-		return &StdError{s}
-	}
-
-	return nil
 }
