@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/MediaMath/cove"
 	"github.com/pkg/browser"
@@ -32,27 +34,30 @@ func main() {
 	packs, pathErr := cove.Packages(paths...)
 	logError(pathErr)
 
-	profiles, coverErrs := cove.CoverageProfile(*short, reportPath, packs...)
-	for _, coverErr := range coverErrs {
+	anyCoverage := false
+	for _, pack := range packs {
+		profile, coverErr := cove.CoverageProfile(*short, reportPath, pack)
 		logError(coverErr)
+
+		if profile != "" {
+			if !*keepProfile {
+				defer os.RemoveAll(profile)
+			}
+
+			report, reportErr := cove.CoverageReport(profile, reportPath)
+			logError(reportErr)
+
+			if report != "" {
+				anyCoverage = true
+				if openReport {
+					browser.OpenFile(report)
+				}
+			}
+		}
 	}
 
-	if len(profiles) < 1 {
-		log.Printf("No coverage for %s, %s", paths, profiles)
-	}
-
-	for _, profile := range profiles {
-		if !*keepProfile {
-			defer os.RemoveAll(profile)
-		}
-
-		report, reportErr := cove.CoverageReport(profile, reportPath)
-		logError(reportErr)
-
-		if report != "" && openReport {
-			browser.OpenFile(report)
-		}
-
+	if !anyCoverage {
+		fmt.Printf("No coverage for %s\n", strings.Join(paths, ","))
 	}
 }
 

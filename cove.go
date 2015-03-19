@@ -35,25 +35,22 @@ func PackageJSON(pack string, v interface{}) error {
 	})
 }
 
-// CoverageProfile creates a cover profile file for all of the provided packages.
-// The files are created in outdir.  The parameter short sets whether to run
+// CoverageProfile creates a cover profile file for the provided package
+// The file is created in outdir.  The parameter short sets whether to run
 // all tests or only the short ones.
 // If a profile is able to be created its file name is returned.
-func CoverageProfile(short bool, outdir string, packs ...string) ([]string, []error) {
-	var written []string
-	var errors []error
-	for _, pack := range packs {
-		file, err := coverageProfile(short, outdir, pack)
-		if err != nil {
-			errors = append(errors, fmt.Errorf("%v:%v", err, written))
-		}
+func CoverageProfile(short bool, outdir string, pack string) (string, error) {
+	profile := getProfileFileName(outdir, pack)
 
-		if file != "" {
-			written = append(written, file)
-		}
+	if err := run(GoCmd("test", pack, fmt.Sprintf("-coverprofile=%s", profile), getShort(short))); err != nil {
+		return "", fmt.Errorf("%s:%v", pack, err)
 	}
 
-	return written, errors
+	if _, err := os.Stat(profile); err != nil {
+		return "", nil
+	}
+
+	return profile, nil
 }
 
 // CoverageReport turns the profile into a report using 'go tool cover'
@@ -72,20 +69,6 @@ func getReportFileName(profile string, outdir string) string {
 	name := report[0 : len(report)-len(extension)]
 	fullPath := filepath.Join(outdir, name)
 	return fmt.Sprintf("%s.html", fullPath)
-}
-
-func coverageProfile(short bool, outdir string, pack string) (string, error) {
-	profile := getProfileFileName(outdir, pack)
-
-	if err := run(GoCmd("test", pack, fmt.Sprintf("-coverprofile=%s", profile), getShort(short))); err != nil {
-		return "", fmt.Errorf("%s:%v", pack, err)
-	}
-
-	if _, err := os.Stat(profile); err != nil {
-		return "", nil
-	}
-
-	return profile, nil
 }
 
 func getProfileFileName(outdir string, pack string) string {
