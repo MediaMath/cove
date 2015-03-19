@@ -19,7 +19,7 @@ func CoverageProfile(short bool, outdir string, packs ...string) ([]string, erro
 	for _, pack := range packs {
 		file, err := coverageProfile(short, outdir, pack)
 		if err != nil {
-			return written, err
+			return written, fmt.Errorf("%v:%v", err, written)
 		}
 
 		if file != "" {
@@ -32,8 +32,10 @@ func CoverageProfile(short bool, outdir string, packs ...string) ([]string, erro
 
 func coverageProfile(short bool, outdir string, pack string) (string, error) {
 	profile := getFileName(outdir, pack)
-	if _, err := gocmd.Prepare("test", pack, fmt.Sprintf("-coverprofile=%s", profile), getShort(short)).StdOutLines(); err != nil {
-		return "", nil
+
+	cmd := gocmd.Prepare("test", pack, fmt.Sprintf("-coverprofile=%s", profile), getShort(short))
+	if _, err := cmd.StdOutLines(); err != nil {
+		return "", fmt.Errorf("%s:%v", pack, err)
 	}
 
 	if _, err := os.Stat(profile); err != nil {
@@ -44,8 +46,8 @@ func coverageProfile(short bool, outdir string, pack string) (string, error) {
 }
 
 func getFileName(outdir string, pack string) string {
-	htmlFile := strings.Replace(pack, "/", ".", -1)
-	fullPath := filepath.Join(outdir, htmlFile)
+	profile := strings.Replace(pack, "/", ".", -1)
+	fullPath := filepath.Join(outdir, profile)
 	return fmt.Sprintf("%s.out", fullPath)
 }
 
