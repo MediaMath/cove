@@ -37,16 +37,16 @@ func PackageJSON(pack string, v interface{}) error {
 
 // CoverageProfile creates a cover profile file for the provided package
 // The file is created in outdir.  The parameter short sets whether to run
-// all tests or only the short ones.
+// all tests or only the short ones. The mode specifies which style of cover mode is used.
 // If a profile is able to be created its file name is returned.
-func CoverageProfile(short bool, outdir string, pack string) (string, error) {
+func CoverageProfile(short bool, mode string, outdir string, pack string) (string, error) {
 	if direrr := os.MkdirAll(outdir, 0744); direrr != nil {
 		return "", direrr
 	}
 
 	profile := getProfileFileName(outdir, pack)
 
-	if err := run(GoCmd("test", pack, fmt.Sprintf("-coverprofile=%s", profile), getShort(short))); err != nil {
+	if err := run(GoCmd("test", pack, fmt.Sprintf("-covermode=%s", mode), fmt.Sprintf("-coverprofile=%s", profile), getShort(short))); err != nil {
 		return "", fmt.Errorf("%s:%v:%v", pack, err, profile)
 	}
 

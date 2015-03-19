@@ -14,6 +14,7 @@ import (
 
 func main() {
 	outputDir := flag.String("o", "", "If provided output files will be written to this dir and not opened.")
+	mode := flag.String("mode", "set", "Which cover mode to use.")
 	short := flag.Bool("short", false, "Run only short tests.")
 	keepProfile := flag.Bool("keep", false, "Will not remove coverage profile files if set.")
 	flag.Parse()
@@ -36,7 +37,7 @@ func main() {
 
 	anyCoverage := false
 	for _, pack := range packs {
-		profile, coverErr := cove.CoverageProfile(*short, reportPath, pack)
+		profile, coverErr := cove.CoverageProfile(*short, *mode, reportPath, pack)
 		logError(coverErr)
 
 		if profile != "" {
