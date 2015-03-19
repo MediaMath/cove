@@ -6,9 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/MediaMath/cove/list"
-	"github.com/MediaMath/cove/test"
-	"github.com/MediaMath/cove/tool"
+	"github.com/MediaMath/cove"
 	"github.com/pkg/browser"
 )
 
@@ -31,10 +29,10 @@ func main() {
 		paths = append(paths, ".")
 	}
 
-	packs, pathErr := list.Packages(paths...)
+	packs, pathErr := cove.Packages(paths...)
 	logError(pathErr)
 
-	profiles, coverErr := test.CoverageProfile(*short, reportPath, packs...)
+	profiles, coverErr := cove.CoverageProfile(*short, reportPath, packs...)
 	logError(coverErr)
 
 	if len(profiles) < 1 {
@@ -46,7 +44,7 @@ func main() {
 			defer os.RemoveAll(profile)
 		}
 
-		report, reportErr := tool.CoverageReport(profile, reportPath)
+		report, reportErr := cove.CoverageReport(profile, reportPath)
 		logError(reportErr)
 
 		if report != "" && openReport {

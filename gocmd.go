@@ -1,5 +1,5 @@
 // Package gocmd is a thin wrapper around calling 'go ...' commands.
-package gocmd
+package cove
 
 import (
 	"bufio"
