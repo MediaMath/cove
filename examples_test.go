@@ -23,7 +23,7 @@ func ExampleCoverageProfile() {
 		fmt.Printf("%v", profileErr)
 	}
 
-	fmt.Println(profile)
+	fmt.Println(filepath.Base(profile))
 
 	//Output:
 	//text.scanner.out
