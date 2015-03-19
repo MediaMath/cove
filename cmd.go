@@ -1,5 +1,4 @@
-// Package gocmd is a thin wrapper around calling 'go ...' commands.
-package gocmd
+package cove
 
 import (
 	"bufio"
@@ -8,23 +7,11 @@ import (
 	"strings"
 )
 
-//A GoCmd is not actually run until one of the functions on the GoCmd interface is called.
-type GoCmd interface {
-	Receive(action func(io.Reader) error) error
-	StdOutLines() ([]string, error)
+func run(cmd *exec.Cmd) error {
+	return pipeWith(cmd, func(stdout io.Reader) error { return nil })
 }
 
-type goCmd struct {
-	*exec.Cmd
-}
-
-//Prepare takes the sub and args and prepares a command like 'go sub arg1 arg2...'
-func Prepare(sub string, args ...string) GoCmd {
-	arguments := append([]string{sub}, args...)
-	return &goCmd{exec.Command("go", arguments...)}
-}
-
-func (cmd *goCmd) Receive(action func(io.Reader) error) error {
+func pipeWith(cmd *exec.Cmd, action func(io.Reader) error) error {
 	stdout, stdOutErr := cmd.StdoutPipe()
 	if stdOutErr != nil {
 		return stdOutErr
@@ -53,9 +40,9 @@ func (cmd *goCmd) Receive(action func(io.Reader) error) error {
 	return gerr
 }
 
-func (cmd *goCmd) StdOutLines() ([]string, error) {
+func output(cmd *exec.Cmd) ([]string, error) {
 	var results []string
-	err := cmd.Receive(func(stdout io.Reader) error {
+	err := pipeWith(cmd, func(stdout io.Reader) error {
 		var scanerr error
 		results, scanerr = scanReader(stdout)
 		return scanerr
