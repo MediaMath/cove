@@ -2,10 +2,13 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
+	"github.com/MediaMath/cove/list"
+	"github.com/MediaMath/cove/test"
+	"github.com/MediaMath/cove/tool"
 	"github.com/pkg/browser"
 )
 
@@ -15,79 +18,46 @@ func main() {
 	keepProfile := flag.Bool("keep", false, "Will not remove coverage profile files if set.")
 	flag.Parse()
 
-	config, confErr := Config(*outputDir, *short, *keepProfile)
-	if confErr != nil {
-		log.Fatalf("Configuration Error: %v", confErr)
+	openReport := false
+	reportPath := *outputDir
+	if reportPath == "" {
+		openReport = true
+		reportPath, _ = ioutil.TempDir("", "cvr")
 	}
 
-	paths, pathErr := toPaths(flag.Args())
-	if pathErr != nil {
-		log.Fatalf("Paths Error: %v", pathErr)
+	paths := flag.Args()
+
+	if len(paths) == 0 {
+		paths = append(paths, ".")
 	}
 
-	if coverErr := CoverPaths(config, Exec(), paths); coverErr != nil {
-		log.Fatalf("Coverage Error: %v", coverErr)
-	}
-}
+	packs, pathErr := list.Packages(paths...)
+	logError(pathErr)
 
-func toPaths(args []string) ([]PackagePath, error) {
-	paths := make([]PackagePath, 0)
-	for _, arg := range args {
-		paths = append(paths, PackagePath(arg))
-	}
-	return paths, nil
-}
+	profiles, coverErr := test.CoverageProfile(*short, reportPath, packs...)
+	logError(coverErr)
 
-type PackagePath string
-type Package interface {
-	FlatName() string
-	Name() string
-}
-
-type Go interface {
-	GetPackages(paths []PackagePath) ([]Package, error)
-	CoverageProfile(pack Package, short bool, profilePath string) (bool, error)
-	CoverageReport(profilePath string, reportPath string) error
-}
-
-func CoverPaths(conf *GoCovConfig, goCmd Go, paths []PackagePath) error {
-	packs, pathErr := goCmd.GetPackages(paths)
-	if pathErr != nil {
-		return pathErr
+	if len(profiles) < 1 {
+		log.Printf("No coverage for %s, %s", paths, profiles)
 	}
 
-	for _, pack := range packs {
-		if err := CoverPackage(conf, goCmd, pack); err != nil {
-			return nil
-		}
-	}
-
-	return nil
-}
-
-func CoverPackage(conf *GoCovConfig, goCmd Go, pack Package) error {
-	out := conf.OutputDir.profile(pack.FlatName())
-	if !conf.KeepProfile {
-		defer os.Remove(out)
-	}
-
-	covered, coverErr := goCmd.CoverageProfile(pack, conf.ShortTests, out)
-	if coverErr != nil {
-		return coverErr
-	}
-
-	if covered {
-		htmlF := conf.OutputDir.html(pack.FlatName())
-		if reportErr := goCmd.CoverageReport(out, htmlF); reportErr != nil {
-			fmt.Printf("RPTERR %v", reportErr)
-			return reportErr
+	for _, profile := range profiles {
+		if !*keepProfile {
+			defer os.RemoveAll(profile)
 		}
 
-		if conf.OpenInBrowser {
-			fmt.Printf("HTML %v", htmlF)
-			browser.OpenFile(htmlF)
-		}
-	}
+		report, reportErr := tool.CoverageReport(profile, reportPath)
+		logError(reportErr)
 
-	return nil
+		if report != "" && openReport {
+			browser.OpenFile(report)
+		}
+
+	}
+}
+
+func logError(err error) {
+	if err != nil {
+		log.Printf("%s\n", err)
+	}
 }
