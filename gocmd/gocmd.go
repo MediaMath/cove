@@ -3,10 +3,9 @@ package gocmd
 
 import (
 	"bufio"
-	"bytes"
-	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 )
 
 //A GoCmd is not actually run until one of the functions on the GoCmd interface is called.
@@ -44,7 +43,14 @@ func (cmd *goCmd) Receive(action func(io.Reader) error) error {
 		return err
 	}
 
-	return newGoError(cmd.Wait(), newStdError(stderr))
+	stderrLines, stderrLinesErr := scanReader(stderr)
+	if stderrLinesErr != nil {
+		return stderrLinesErr
+	}
+
+	err := cmd.Wait()
+	gerr := newGoError(err, newStdError(stderrLines))
+	return gerr
 }
 
 func (cmd *goCmd) StdOutLines() ([]string, error) {
@@ -76,7 +82,11 @@ type GoError struct {
 }
 
 func (s *GoError) Error() string {
-	return fmt.Sprintf("%v\n%v", s.Exit, s.StdErr)
+	if s.StdErr != nil {
+		return s.StdErr.Error()
+	}
+
+	return s.Exit.Error()
 }
 
 func newGoError(err error, stdErr *StdError) error {
@@ -96,10 +106,8 @@ func (s *StdError) Error() string {
 	return s.Output
 }
 
-func newStdError(stderr io.Reader) *StdError {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(stderr)
-	s := buf.String()
+func newStdError(lines []string) *StdError {
+	s := strings.Join(lines, "\n")
 
 	if s != "" {
 		return &StdError{s}
