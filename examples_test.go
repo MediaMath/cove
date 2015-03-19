@@ -12,14 +12,14 @@ import (
 func ExampleCoverageProfile() {
 	testdir, temperr := ioutil.TempDir("", "coverage-profile")
 
-	if temperr {
+	if temperr != nil {
 		fmt.Printf("%v", temperr)
 	}
 
 	defer os.RemoveAll(testdir)
 
 	profile, profileErr := CoverageProfile(false, testdir, "text/scanner")
-	if profileErr {
+	if profileErr != nil {
 		fmt.Printf("%v", profileErr)
 	}
 
