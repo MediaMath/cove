@@ -1,4 +1,4 @@
-// Package provides library wrappings around the go toolchain
+// Package cove is a thin wrapper around the go toolchain
 package cove
 
 import (
@@ -6,16 +6,23 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
 )
 
+//GoCmd takes the sub and args and prepares a command like 'go sub arg1 arg2...'
+func GoCmd(sub string, args ...string) *exec.Cmd {
+	arguments := append([]string{sub}, args...)
+	return exec.Command("go", arguments...)
+}
+
 // Packages gets all packages that match any of the paths.
 // The package list will only contain 1 entry per package in sorted order.
 // Invalid paths will generate an error, but will not stop the evaluation of the other paths.
 func Packages(paths ...string) ([]string, error) {
-	packs, err := Prepare("list", paths...).StdOutLines()
+	packs, err := output(GoCmd("list", paths...))
 	sort.Strings(packs)
 	return packs, err
 }
@@ -23,12 +30,12 @@ func Packages(paths ...string) ([]string, error) {
 // PackageJSON takes a SINGLE fully qualified package import path and decodes the 'go list -json' response.
 // See $GOROOT/src/cmd/go/list.go for documentation on the json output.
 func PackageJSON(pack string, v interface{}) error {
-	return Prepare("list", "-json", pack).Receive(func(stdout io.Reader) error {
+	return pipeWith(GoCmd("list", "-json", pack), func(stdout io.Reader) error {
 		return json.NewDecoder(stdout).Decode(v)
 	})
 }
 
-// Coverage Profile creates a cover profile file for all of the provided packages.
+// CoverageProfile creates a cover profile file for all of the provided packages.
 // The files are created in outdir.  The parameter short sets whether to run
 // all tests or only the short ones.
 // If a profile is able to be created its file name is returned.
@@ -51,7 +58,7 @@ func CoverageProfile(short bool, outdir string, packs ...string) ([]string, erro
 // CoverageReport turns the profile into a report using 'go tool cover'
 func CoverageReport(profile string, outdir string) (string, error) {
 	report := getReportFileName(profile, outdir)
-	if _, err := Prepare("tool", "cover", fmt.Sprintf("-html=%s", profile), "-o", report).StdOutLines(); err != nil {
+	if err := run(GoCmd("tool", "cover", fmt.Sprintf("-html=%s", profile), "-o", report)); err != nil {
 		return "", err
 	}
 
@@ -65,11 +72,11 @@ func getReportFileName(profile string, outdir string) string {
 	fullPath := filepath.Join(outdir, name)
 	return fmt.Sprintf("%s.html", fullPath)
 }
+
 func coverageProfile(short bool, outdir string, pack string) (string, error) {
 	profile := getProfileFileName(outdir, pack)
 
-	cmd := Prepare("test", pack, fmt.Sprintf("-coverprofile=%s", profile), getShort(short))
-	if _, err := cmd.StdOutLines(); err != nil {
+	if err := run(GoCmd("test", pack, fmt.Sprintf("-coverprofile=%s", profile), getShort(short))); err != nil {
 		return "", fmt.Errorf("%s:%v", pack, err)
 	}
 
@@ -89,7 +96,7 @@ func getProfileFileName(outdir string, pack string) string {
 func getShort(short bool) string {
 	if short {
 		return "-short"
-	} else {
-		return ""
 	}
+
+	return ""
 }

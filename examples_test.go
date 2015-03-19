@@ -125,8 +125,8 @@ func ExamplePackages_unknown2() {
 	//Had errors.
 }
 
-func ExamplePrepare_receive() {
-	Prepare("list", "os/exec", "text/...").Receive(func(stdout io.Reader) error {
+func ExamplePipeWith() {
+	pipeWith(GoCmd("list", "os/exec", "text/..."), func(stdout io.Reader) error {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			fmt.Println(scanner.Text())
@@ -143,8 +143,8 @@ func ExamplePrepare_receive() {
 	//text/template/parse
 }
 
-func ExamplePrepare_stdout() {
-	out, _ := Prepare("list", "os/exec", "text/...").StdOutLines()
+func ExampleOutputLines() {
+	out, _ := output(GoCmd("list", "os/exec", "text/..."))
 
 	for _, k := range out {
 		fmt.Println(k)
@@ -175,13 +175,13 @@ func ExamplePackageJSON() {
 
 func ExamplePackageJSON_wildcard() {
 
-	type JsonResponse struct {
+	type JSONresponse struct {
 		ImportPath string
 		Name       string
 		Incomplete bool
 	}
 
-	resp := make([]JsonResponse, 0)
+	var resp []JSONresponse
 	if err := PackageJSON("os/...", &resp); err != nil {
 		fmt.Printf("'go list -json os/...' returns an invalid json in the multiple return case.")
 	}
