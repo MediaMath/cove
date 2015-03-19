@@ -32,8 +32,10 @@ func main() {
 	packs, pathErr := cove.Packages(paths...)
 	logError(pathErr)
 
-	profiles, coverErr := cove.CoverageProfile(*short, reportPath, packs...)
-	logError(coverErr)
+	profiles, coverErrs := cove.CoverageProfile(*short, reportPath, packs...)
+	for _, coverErr := range coverErrs {
+		logError(coverErr)
+	}
 
 	if len(profiles) < 1 {
 		log.Printf("No coverage for %s, %s", paths, profiles)

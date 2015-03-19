@@ -39,12 +39,13 @@ func PackageJSON(pack string, v interface{}) error {
 // The files are created in outdir.  The parameter short sets whether to run
 // all tests or only the short ones.
 // If a profile is able to be created its file name is returned.
-func CoverageProfile(short bool, outdir string, packs ...string) ([]string, error) {
+func CoverageProfile(short bool, outdir string, packs ...string) ([]string, []error) {
 	var written []string
+	var errors []error
 	for _, pack := range packs {
 		file, err := coverageProfile(short, outdir, pack)
 		if err != nil {
-			return written, fmt.Errorf("%v:%v", err, written)
+			errors = append(errors, fmt.Errorf("%v:%v", err, written))
 		}
 
 		if file != "" {
@@ -52,7 +53,7 @@ func CoverageProfile(short bool, outdir string, packs ...string) ([]string, erro
 		}
 	}
 
-	return written, nil
+	return written, errors
 }
 
 // CoverageReport turns the profile into a report using 'go tool cover'
