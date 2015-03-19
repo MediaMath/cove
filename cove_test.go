@@ -15,7 +15,7 @@ func TestCoverageProfileDoesntDeleteNonProfileFilesInOutputDir(t *testing.T) {
 	foofile := filepath.Join(testdir, "foo")
 	ioutil.WriteFile(foofile, bytes, 0644)
 
-	profile, _ := CoverageProfile(true, testdir, "text/scanner")
+	profile, _ := CoverageProfile(true, "count", testdir, "text/scanner")
 
 	if profile == "" {
 		t.Errorf("Could not create profile")
@@ -31,7 +31,7 @@ func TestCoverageProfileCreatesOutputDirIfItDoesntExist(t *testing.T) {
 	defer os.RemoveAll(testdir)
 	outdir := filepath.Join(testdir, "outdir")
 
-	profile, er := CoverageProfile(true, outdir, "text/scanner")
+	profile, er := CoverageProfile(true, "set", outdir, "text/scanner")
 	if er != nil {
 		t.Errorf("%v", er)
 	}

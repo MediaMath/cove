@@ -18,7 +18,7 @@ func ExampleCoverageProfile() {
 
 	defer os.RemoveAll(testdir)
 
-	profile, profileErr := CoverageProfile(false, testdir, "text/scanner")
+	profile, profileErr := CoverageProfile(false, "count", testdir, "text/scanner")
 	if profileErr != nil {
 		fmt.Printf("%v", profileErr)
 	}
@@ -33,7 +33,7 @@ func ExampleCoverageProfile_short() {
 	testdir, _ := ioutil.TempDir("", "coverage-profile")
 	defer os.RemoveAll(testdir)
 
-	profile, _ := CoverageProfile(true, testdir, "text/scanner")
+	profile, _ := CoverageProfile(true, "set", testdir, "text/scanner")
 	fmt.Println(filepath.Base(profile))
 
 	//Output:
