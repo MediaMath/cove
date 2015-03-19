@@ -40,13 +40,17 @@ func PackageJSON(pack string, v interface{}) error {
 // all tests or only the short ones.
 // If a profile is able to be created its file name is returned.
 func CoverageProfile(short bool, outdir string, pack string) (string, error) {
+	if direrr := os.MkdirAll(outdir, 0744); direrr != nil {
+		return "", direrr
+	}
+
 	profile := getProfileFileName(outdir, pack)
 
 	if err := run(GoCmd("test", pack, fmt.Sprintf("-coverprofile=%s", profile), getShort(short))); err != nil {
-		return "", fmt.Errorf("%s:%v", pack, err)
+		return "", fmt.Errorf("%s:%v:%v", pack, err, profile)
 	}
 
-	if _, err := os.Stat(profile); err != nil {
+	if _, err := os.Stat(profile); os.IsNotExist(err) {
 		return "", nil
 	}
 
