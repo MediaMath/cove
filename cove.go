@@ -20,6 +20,11 @@ func GoCmd(sub string, args ...string) *exec.Cmd {
 	return exec.Command("go", arguments...)
 }
 
+// Get runs 'go get pack'
+func Get(pack string) error {
+	return cmd.Run(GoCmd("get", pack))
+}
+
 // Packages gets all packages that match any of the paths.
 // The package list will only contain 1 entry per package in sorted order.
 // Invalid paths will generate an error, but will not stop the evaluation of the other paths.

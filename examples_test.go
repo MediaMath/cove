@@ -7,6 +7,19 @@ import (
 	"path/filepath"
 )
 
+func ExampleGet() {
+	if err := Get("text/scanner"); err != nil {
+		fmt.Println(err)
+	}
+
+	if err := Get("not/a/package"); err != nil {
+		fmt.Println("Got error")
+	}
+
+	//Output:
+	//Got error
+}
+
 func ExampleCoverageProfile() {
 	testdir, temperr := ioutil.TempDir("", "coverage-profile")
 
