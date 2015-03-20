@@ -20,6 +20,20 @@ func ExampleGet() {
 	//Got error
 }
 
+func ExamplePackageExists() {
+	if PackageExists("os/exec") {
+		fmt.Println("os/exec exists")
+	}
+
+	if !PackageExists("boogey/woogey/bugleboy") {
+		fmt.Println("boogey/woogey/bugleboy does not exist")
+	}
+
+	//Output:
+	//os/exec exists
+	//boogey/woogey/bugleboy does not exist
+}
+
 func ExampleCoverageProfile() {
 	testdir, temperr := ioutil.TempDir("", "coverage-profile")
 
