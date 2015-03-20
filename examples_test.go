@@ -1,9 +1,7 @@
 package cove
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -124,39 +122,6 @@ func ExamplePackages_unknown2() {
 
 	//Output:
 	//Had errors.
-}
-
-func ExamplePipeWith() {
-	pipeWith(GoCmd("list", "os/exec", "text/..."), func(stdout io.Reader) error {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			fmt.Println(scanner.Text())
-		}
-
-		return nil
-	})
-
-	//Output:
-	//os/exec
-	//text/scanner
-	//text/tabwriter
-	//text/template
-	//text/template/parse
-}
-
-func ExampleOutputLines() {
-	out, _ := output(GoCmd("list", "os/exec", "text/..."))
-
-	for _, k := range out {
-		fmt.Println(k)
-	}
-
-	//Output:
-	//os/exec
-	//text/scanner
-	//text/tabwriter
-	//text/template
-	//text/template/parse
 }
 
 func ExamplePackageJSON() {
