@@ -3,6 +3,8 @@ package cove
 import (
 	"reflect"
 	"testing"
+
+	"github.com/MediaMath/cove/cmd"
 )
 
 //These tests verify the behavior of go list
@@ -49,7 +51,7 @@ func TestFailPathResultWithPassingTooWithErrorsOff(t *testing.T) {
 }
 
 func list(args ...string) ([]string, error) {
-	return output(GoCmd("list", args...))
+	return cmd.Output(GoCmd("list", args...))
 }
 
 func eq(slice1 []string, slice2 []string) bool {

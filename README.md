@@ -6,6 +6,16 @@ This is a small set of wrapper libraries and cli's that wrap around the golang g
 
 Unlike most go projects this one does have a dependency on the go development environment.  It will not work with just the runtime.
 
+## gosh - Get Over SsH - simple script for getting go packages at supplied uri's.
+
+```bash
+gosh github.com/MediaMath/cove,git@github.com:MediaMath/cove.git github.com/MediaMath/fpg,git@github.com:MediaMath/fpg.git
+```
+
+### To Install cvr
+
+TBD
+
 ## cvr - wrapper around go code coverage.
 
 The go code coverage facility is one of the few that does not respond well to path traversals.  This tool provides an ability to:
@@ -28,5 +38,6 @@ cvr -o=path/to/some/dir github.com/MediaMath/...
 ### To Install cvr
 
 ```bash
+gosh github.com/MediaMath/cove,git@github.com:MediaMath/cove.git
 go install github.com/MediaMath/cove/cvr
 ```

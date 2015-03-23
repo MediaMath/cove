@@ -1,13 +1,38 @@
 package cove
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 )
+
+func ExampleGet() {
+	if err := Get("text/scanner"); err != nil {
+		fmt.Println(err)
+	}
+
+	if err := Get("not/a/package"); err != nil {
+		fmt.Println("Got error")
+	}
+
+	//Output:
+	//Got error
+}
+
+func ExamplePackageExists() {
+	if PackageExists("os/exec") {
+		fmt.Println("os/exec exists")
+	}
+
+	if !PackageExists("boogey/woogey/bugleboy") {
+		fmt.Println("boogey/woogey/bugleboy does not exist")
+	}
+
+	//Output:
+	//os/exec exists
+	//boogey/woogey/bugleboy does not exist
+}
 
 func ExampleCoverageProfile() {
 	testdir, temperr := ioutil.TempDir("", "coverage-profile")
@@ -124,39 +149,6 @@ func ExamplePackages_unknown2() {
 
 	//Output:
 	//Had errors.
-}
-
-func ExamplePipeWith() {
-	pipeWith(GoCmd("list", "os/exec", "text/..."), func(stdout io.Reader) error {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			fmt.Println(scanner.Text())
-		}
-
-		return nil
-	})
-
-	//Output:
-	//os/exec
-	//text/scanner
-	//text/tabwriter
-	//text/template
-	//text/template/parse
-}
-
-func ExampleOutputLines() {
-	out, _ := output(GoCmd("list", "os/exec", "text/..."))
-
-	for _, k := range out {
-		fmt.Println(k)
-	}
-
-	//Output:
-	//os/exec
-	//text/scanner
-	//text/tabwriter
-	//text/template
-	//text/template/parse
 }
 
 func ExamplePackageJSON() {
