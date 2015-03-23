@@ -23,9 +23,9 @@ func PipeWith(cmd *exec.Cmd, action func(io.Reader) error) error {
 		return stdOutErr
 	}
 
-	stderr, stdErrErr := cmd.StderrPipe()
-	if stdErrErr != nil {
-		return stdErrErr
+	stderr, stderrErr := cmd.StderrPipe()
+	if stderrErr != nil {
+		return stderrErr
 	}
 
 	if err := cmd.Start(); err != nil {
