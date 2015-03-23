@@ -12,7 +12,7 @@ Unlike most go projects this one does have a dependency on the go development en
 gosh github.com/MediaMath/cove,git@github.com:MediaMath/cove.git github.com/MediaMath/fpg,git@github.com:MediaMath/fpg.git
 ```
 
-### To Install cvr
+### To Install gosh
 
 TBD
 
