@@ -11,7 +11,7 @@ import (
 func TestCmdError(t *testing.T) {
 	cmd, dir, gErr := getFailingCmd()
 	if gErr != nil {
-		t.Errorf(gErr)
+		t.Errorf("%v", gErr)
 	}
 
 	err := Run(cmd)
@@ -47,7 +47,7 @@ func TestCmdErrorDoesntTrapNonExitErrors(t *testing.T) {
 //to get an exit err I need to run a process
 //and get that error
 func getRealExitError() error {
-	cmd, gErr := getFailingCmd()
+	cmd, _, gErr := getFailingCmd()
 	if gErr != nil {
 		return gErr
 	}
