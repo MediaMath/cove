@@ -9,7 +9,7 @@ import (
 )
 
 func TestCmdError(t *testing.T) {
-	cmd, dir, gErr := getFailingCmd()
+	cmd, _, gErr := getFailingCmd()
 	if gErr != nil {
 		t.Errorf("%v", gErr)
 	}
@@ -19,12 +19,7 @@ func TestCmdError(t *testing.T) {
 		t.Errorf("Should have error")
 	}
 
-	if goerr, ok := err.(*CmdError); ok {
-		expected := fmt.Sprintf("ls: %v: No such file or directory", dir)
-		if goerr.Error() != expected {
-			t.Errorf("%v\n%v", goerr.Error(), expected)
-		}
-	} else {
+	if _, ok := err.(*CmdError); !ok {
 		t.Errorf("Should be CmdError: %v", err)
 	}
 }
