@@ -12,10 +12,6 @@ Unlike most go projects this one does have a dependency on the go development en
 gosh github.com/MediaMath/cove,git@github.com:MediaMath/cove.git github.com/MediaMath/fpg,git@github.com:MediaMath/fpg.git
 ```
 
-### To Install gosh
-
-TBD
-
 ## cvr - wrapper around go code coverage.
 
 The go code coverage facility is one of the few that does not respond well to path traversals.  This tool provides an ability to:
