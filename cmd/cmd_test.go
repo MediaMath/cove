@@ -9,9 +9,12 @@ import (
 )
 
 func TestCmdError(t *testing.T) {
-	cmd, dir := getFailingCmd()
-	err := Run(cmd)
+	cmd, dir, gErr := getFailingCmd()
+	if gErr != nil {
+		t.Errorf(gErr)
+	}
 
+	err := Run(cmd)
 	if err == nil {
 		t.Errorf("Should have error")
 	}
@@ -44,17 +47,24 @@ func TestCmdErrorDoesntTrapNonExitErrors(t *testing.T) {
 //to get an exit err I need to run a process
 //and get that error
 func getRealExitError() error {
-	cmd, _ := getFailingCmd()
+	cmd, gErr := getFailingCmd()
+	if gErr != nil {
+		return gErr
+	}
 	return cmd.Run()
 }
 
-func getFailingCmd() (*exec.Cmd, string) {
-	tempDir, _ := ioutil.TempDir("", "failingcmd")
+func getFailingCmd() (*exec.Cmd, string, error) {
+	tempDir, err := ioutil.TempDir("", "failingcmd")
+	if err != nil {
+		return nil, "", err
+	}
+
 	os.RemoveAll(tempDir)
 
 	//ls on a non-existent directory should fail
 	//not portable to systems without ls
-	return exec.Command("ls", tempDir), tempDir
+	return exec.Command("ls", tempDir), tempDir, nil
 }
 
 func TestCmdErrorTrapsExitErrors(t *testing.T) {
