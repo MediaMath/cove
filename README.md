@@ -12,6 +12,13 @@ Unlike most go projects this one does have a dependency on the go development en
 gosh github.com/MediaMath/cove,git@github.com:MediaMath/cove.git github.com/MediaMath/fpg,git@github.com:MediaMath/fpg.git
 ```
 
+### To Install gosh
+
+```bash
+go install github.com/MediaMath/cove/gosh
+```
+
+
 ## cvr - wrapper around go code coverage.
 
 The go code coverage facility is one of the few that does not respond well to path traversals.  This tool provides an ability to:
@@ -34,6 +41,5 @@ cvr -o=path/to/some/dir github.com/MediaMath/...
 ### To Install cvr
 
 ```bash
-gosh github.com/MediaMath/cove,git@github.com:MediaMath/cove.git
 go install github.com/MediaMath/cove/cvr
 ```
