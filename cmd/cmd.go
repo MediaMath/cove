@@ -73,14 +73,14 @@ func scanReader(reader io.Reader) ([]string, error) {
 	return results, scanner.Err()
 }
 
-//CmdError is returned when an exit error is encountered.
+//Error is returned when an exit error is encountered.
 //It also captures the stderr lines from the command.
-type CmdError struct {
+type Error struct {
 	Exit   *exec.ExitError
 	StdErr []string
 }
 
-func (s *CmdError) Error() string {
+func (s *Error) Error() string {
 	stderr := strings.Join(s.StdErr, "\n")
 	if stderr != "" {
 		return stderr
@@ -91,7 +91,7 @@ func (s *CmdError) Error() string {
 
 func newCmdError(err error, stderr []string) error {
 	if exitErr, ok := err.(*exec.ExitError); ok {
-		return &CmdError{exitErr, stderr}
+		return &Error{exitErr, stderr}
 	}
 
 	return err

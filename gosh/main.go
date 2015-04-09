@@ -34,21 +34,23 @@ func main() {
 	}
 }
 
-func getMap(args []string) (map[string]string, error) {
-	goshMap := make(map[string]string)
+type packToLocation map[cove.Package]string
+
+func getMap(args []string) (packToLocation, error) {
+	goshMap := make(packToLocation)
 	for _, arg := range args {
 		pair := strings.Split(arg, ",")
 		if len(pair) != 2 {
 			return nil, fmt.Errorf("Arguments are unparseable: %v", strings.Join(args, " "))
 		}
 
-		goshMap[pair[0]] = pair[1]
+		goshMap[cove.Package(pair[0])] = pair[1]
 	}
 
 	return goshMap, nil
 }
 
-func gosh(overwrite bool, goshMap map[string]string) bool {
+func gosh(overwrite bool, goshMap packToLocation) bool {
 	hadError := false
 	for pack, location := range goshMap {
 
@@ -74,7 +76,7 @@ func gosh(overwrite bool, goshMap map[string]string) bool {
 	return hadError
 }
 
-func getDependencies(goshMap map[string]string, dependencies []string) bool {
+func getDependencies(goshMap packToLocation, dependencies []cove.Package) bool {
 	hadError := false
 	for _, dep := range dependencies {
 		if _, inGoshMap := goshMap[dep]; inGoshMap {
@@ -109,8 +111,8 @@ func vcsClone(src string, destination string) error {
 	return cmd.Run(exec.Command("git", "clone", "--depth=1", src, destination))
 }
 
-func to(pack string) string {
-	return filepath.Join(os.Getenv("GOPATH"), "src", pack)
+func to(pack cove.Package) string {
+	return filepath.Join(os.Getenv("GOPATH"), "src", string(pack))
 }
 
 func overwrite(destination string, copyTo func(string) error) error {

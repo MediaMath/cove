@@ -36,7 +36,7 @@ func main() {
 		paths = append(paths, ".")
 	}
 
-	packs, pathErr := cove.Packages(paths...)
+	packs, pathErr := cove.Packages(cove.PackagePatternsFromStrings(paths)...)
 	logError(pathErr)
 
 	anyCoverage := false
