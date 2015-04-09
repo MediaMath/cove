@@ -23,7 +23,7 @@ func TestCmdError(t *testing.T) {
 		t.Errorf("Should have error")
 	}
 
-	if _, ok := err.(*CmdError); !ok {
+	if _, ok := err.(*Error); !ok {
 		t.Errorf("Should be CmdError: %v", err)
 	}
 }
