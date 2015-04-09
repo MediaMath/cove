@@ -21,11 +21,11 @@ import (
 //Package is a specific and unique go package
 type Package string
 
-//Path is a path to search for packages in.  It can correlate to 0 to many Packages
-type Path string
+//PackagePattern is a pattern, potentially with wildcards, to search for packages in.  It can correlate to 0 to many Packages
+type PackagePattern string
 
-//PathsAsStrings takes a slice of paths and returns a slice of strings
-func PathsAsStrings(paths []Path) []string {
+//PackagePatternsAsStrings takes a slice of paths and returns a slice of strings
+func PackagePatternsAsStrings(paths []PackagePattern) []string {
 	var returns []string
 	for _, path := range paths {
 		returns = append(returns, string(path))
@@ -54,11 +54,11 @@ func PackagesFromStrings(str []string) []Package {
 	return returns
 }
 
-//PathsFromStrings creates a slice of paths from a slice of strings
-func PathsFromStrings(str []string) []Path {
-	var returns []Path
+//PackagePatternsFromStrings creates a slice of paths from a slice of strings
+func PackagePatternsFromStrings(str []string) []PackagePattern {
+	var returns []PackagePattern
 	for _, s := range str {
-		returns = append(returns, Path(s))
+		returns = append(returns, PackagePattern(s))
 	}
 
 	return returns
@@ -120,8 +120,8 @@ type missing struct {
 // Packages gets all packages that match any of the paths.
 // The package list will only contain 1 entry per package in sorted order.
 // Invalid paths will generate an error, but will not stop the evaluation of the other paths.
-func Packages(paths ...Path) ([]Package, error) {
-	packs, err := cmd.Output(GoCmd("list", PathsAsStrings(paths)...))
+func Packages(paths ...PackagePattern) ([]Package, error) {
+	packs, err := cmd.Output(GoCmd("list", PackagePatternsAsStrings(paths)...))
 	sort.Strings(packs)
 	return PackagesFromStrings(packs), err
 }
