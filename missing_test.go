@@ -46,7 +46,9 @@ func TestHasMissing(t *testing.T) {
 	}
 }
 
-func has(miss []string, dep ...string) error {
+func has(packs []Package, dep ...string) error {
+	miss := PackagesAsStrings(packs)
+
 	if len(miss) < len(dep) {
 		return fmt.Errorf("Expected is missing items:%v %v", miss, dep)
 	}
@@ -66,10 +68,10 @@ func has(miss []string, dep ...string) error {
 	return nil
 }
 
-func parseString(toParse string) ([]string, error) {
+func parseString(toParse string) ([]Package, error) {
 	var parsed missing
 	if err := json.NewDecoder(strings.NewReader(toParse)).Decode(&parsed); err != nil {
-		return []string{}, err
+		return []Package{}, err
 	}
 
 	return missingFromParsed(&parsed)
