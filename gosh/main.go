@@ -36,15 +36,62 @@ func main() {
 
 type packToLocation map[cove.Package]string
 
+func impliedGithubRepo(pack cove.Package) (string, error) {
+	components := strings.Split(string(pack), "/")
+
+	var owner, repo string
+	if len(components) < 2 {
+		return "", fmt.Errorf("Cannot get implied github repo from %v", pack)
+	} else if len(components) == 2 {
+
+		owner = components[0]
+		repo = components[1]
+	} else {
+		if strings.Contains(components[0], ".") && components[0] != "github.com" {
+			return "", fmt.Errorf("Only able to imply github.com repository urls: %v", pack)
+		} else if strings.Contains(components[0], ".") && components[0] == "github.com" {
+
+			owner = components[1]
+			repo = components[2]
+		} else {
+			owner = components[0]
+			repo = components[1]
+		}
+	}
+
+	return fmt.Sprintf("git@github.com:%s/%s.git", owner, repo), nil
+}
+
+func parsePair(arg string) (cove.Package, string, error) {
+	pair := strings.Split(arg, ",")
+	if len(pair) == 0 || len(pair) > 2 {
+		return cove.Package(""), "", fmt.Errorf("Arguments are unparseable: %v", arg)
+	}
+
+	pack := cove.Package(pair[0])
+	if len(pair) == 1 {
+		repo, err := impliedGithubRepo(pack)
+		if err != nil {
+			return pack, "", err
+		}
+
+		fmt.Printf("Using Github url %s for %v\n", repo, pack)
+		return pack, repo, nil
+	} else {
+		return pack, pair[1], nil
+	}
+
+}
+
 func getMap(args []string) (packToLocation, error) {
 	goshMap := make(packToLocation)
 	for _, arg := range args {
-		pair := strings.Split(arg, ",")
-		if len(pair) != 2 {
-			return nil, fmt.Errorf("Arguments are unparseable: %v", strings.Join(args, " "))
+		pack, repo, err := parsePair(arg)
+		if err != nil {
+			return nil, err
 		}
 
-		goshMap[cove.Package(pair[0])] = pair[1]
+		goshMap[pack] = repo
 	}
 
 	return goshMap, nil
