@@ -8,8 +8,21 @@ Unlike most go projects this one does have a dependency on the go development en
 
 ## gosh - Get Over SsH - simple script for getting go packages at supplied uri's.
 
+### Explicit ssh urls
+
+Gosh works by taking a package/git ssh url pair, seperated by a ','.
+
 ```bash
-gosh github.com/MediaMath/cove,git@github.com:MediaMath/cove.git github.com/MediaMath/fpg,git@github.com:MediaMath/fpg.git
+gosh github.com/MediaMath/cove,git@github.com:MediaMath/cove.git github.com/MediaMath/foo/bar,git@github.com:MediaMath/foo.git
+```
+
+### Implied github ssh urls.
+
+If you do not provide a second argument with a ',' to gosh it will attempt to imply a github url.
+
+```bash
+#will use git@github.com:MediaMath/cove.git and git@github.com:MediaMath/foo.git
+gosh github.com/MediaMath/cove github.com/MediaMath/foo/bar
 ```
 
 ### To Install gosh
