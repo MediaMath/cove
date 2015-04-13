@@ -10,15 +10,15 @@ func TestGetGoshMapFromArgs(t *testing.T) {
 	goshMap, _ := getMap([]string{"foo/bar,git@github.com/MediaMath/foo.git", "salt,git@github.com/MediaMath/salt.git"})
 
 	if len(goshMap) != 2 {
-		t.Errorf("|%v|", goshMap)
+		t.Errorf("Map does not have appropriate number of items |%v|", goshMap)
 	}
 
 	if goshMap["foo/bar"] != "git@github.com/MediaMath/foo.git" {
-		t.Errorf("|%v|", goshMap)
+		t.Errorf("Incorrect url for foo/bar", goshMap["foo/bar"])
 	}
 
 	if goshMap["salt"] != "git@github.com/MediaMath/salt.git" {
-		t.Errorf("|%v|", goshMap)
+		t.Errorf("Incorrect url for salt", goshMap["salt"])
 	}
 
 }
@@ -27,15 +27,15 @@ func TestGetGoshMapMixOfImpliedAndExplicit(t *testing.T) {
 	goshMap, _ := getMap([]string{"foo/bar/baz", "salt,git@github.com/MediaMath/salt.git"})
 
 	if len(goshMap) != 2 {
-		t.Errorf("|%v|", goshMap)
+		t.Errorf("Map does not have appropriate number of items |%v|", goshMap)
 	}
 
-	if goshMap["foo/bar/baz"] != "git@github.com:foo/bar.git" {
-		t.Errorf("|%v|", goshMap)
+	if goshMap["foo/bar/baz"] != "git@github.com/MediaMath/foo.git" {
+		t.Errorf("Incorrect url for foo/bar/baz", goshMap["foo/bar"])
 	}
 
 	if goshMap["salt"] != "git@github.com/MediaMath/salt.git" {
-		t.Errorf("|%v|", goshMap)
+		t.Errorf("Incorrect url for salt", goshMap["salt"])
 	}
 }
 
