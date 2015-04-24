@@ -34,21 +34,26 @@ func main() {
 	}
 }
 
-type packToLocation map[cove.Package]string
+type Location struct {
+	GithubUrl string
+	Path      string
+}
 
-func impliedGithubRepo(pack cove.Package) (string, error) {
+type packToLocation map[cove.Package]*Location
+
+func impliedGithubRepo(pack cove.Package) (*Location, error) {
 	components := strings.Split(string(pack), "/")
 
 	var owner, repo string
 	if len(components) < 2 {
-		return "", fmt.Errorf("Cannot get implied github repo from %v", pack)
+		return nil, fmt.Errorf("Cannot get implied github repo from %v", pack)
 	} else if len(components) == 2 {
 
 		owner = components[0]
 		repo = components[1]
 	} else {
 		if strings.Contains(components[0], ".") && components[0] != "github.com" {
-			return "", fmt.Errorf("Only able to imply github.com repository urls: %v", pack)
+			return nil, fmt.Errorf("Only able to imply github.com repository urls: %v", pack)
 		} else if strings.Contains(components[0], ".") && components[0] == "github.com" {
 
 			owner = components[1]
@@ -59,26 +64,26 @@ func impliedGithubRepo(pack cove.Package) (string, error) {
 		}
 	}
 
-	return fmt.Sprintf("git@github.com:%s/%s.git", owner, repo), nil
+	return &Location{fmt.Sprintf("git@github.com:%s/%s.git", owner, repo), fmt.Sprintf("github.com/%s/%s", owner, repo)}, nil
 }
 
-func parsePair(arg string) (cove.Package, string, error) {
+func parsePair(arg string) (cove.Package, *Location, error) {
 	pair := strings.Split(arg, ",")
 	if len(pair) == 0 || len(pair) > 2 {
-		return cove.Package(""), "", fmt.Errorf("Arguments are unparseable: %v", arg)
+		return cove.Package(""), nil, fmt.Errorf("Arguments are unparseable: %v", arg)
 	}
 
 	pack := cove.Package(pair[0])
 	if len(pair) == 1 {
 		repo, err := impliedGithubRepo(pack)
 		if err != nil {
-			return pack, "", err
+			return pack, nil, err
 		}
 
-		fmt.Printf("Using Github url %s for %v\n", repo, pack)
+		fmt.Printf("Using Github url %s for %v\n", repo.GithubUrl, pack)
 		return pack, repo, nil
 	} else {
-		return pack, pair[1], nil
+		return pack, &Location{pair[1], string(pack)}, nil
 	}
 
 }
@@ -102,7 +107,7 @@ func gosh(overwrite bool, goshMap packToLocation) bool {
 	for pack, location := range goshMap {
 
 		if overwrite || !cove.PackageExists(pack) {
-			if logError(clone(location, to(pack))) {
+			if logError(clone(location.GithubUrl, to(location))) {
 				hadError = true
 				continue
 			}
@@ -158,8 +163,8 @@ func vcsClone(src string, destination string) error {
 	return cmd.Run(exec.Command("git", "clone", "--depth=1", src, destination))
 }
 
-func to(pack cove.Package) string {
-	return filepath.Join(os.Getenv("GOPATH"), "src", string(pack))
+func to(location *Location) string {
+	return filepath.Join(os.Getenv("GOPATH"), "src", location.Path)
 }
 
 func overwrite(destination string, copyTo func(string) error) error {
