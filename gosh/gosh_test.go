@@ -13,11 +13,11 @@ func TestGetGoshMapFromArgs(t *testing.T) {
 		t.Errorf("Map does not have appropriate number of items |%v|", goshMap)
 	}
 
-	if goshMap["foo/bar"] != "git@github.com/MediaMath/foo.git" {
+	if goshMap["foo/bar"].GithubUrl != "git@github.com/MediaMath/foo.git" {
 		t.Errorf("Incorrect url for foo/bar", goshMap["foo/bar"])
 	}
 
-	if goshMap["salt"] != "git@github.com/MediaMath/salt.git" {
+	if goshMap["salt"].GithubUrl != "git@github.com/MediaMath/salt.git" {
 		t.Errorf("Incorrect url for salt", goshMap["salt"])
 	}
 
@@ -30,11 +30,15 @@ func TestGetGoshMapMixOfImpliedAndExplicit(t *testing.T) {
 		t.Errorf("Map does not have appropriate number of items |%v|", goshMap)
 	}
 
-	if goshMap["foo/bar/baz"] != "git@github.com/MediaMath/foo.git" {
-		t.Errorf("Incorrect url for foo/bar/baz", goshMap["foo/bar"])
+	if goshMap["foo/bar/baz"] == nil {
+		t.Errorf("Did not get values |%v|", goshMap)
 	}
 
-	if goshMap["salt"] != "git@github.com/MediaMath/salt.git" {
+	if goshMap["foo/bar/baz"].GithubUrl != "git@github.com:foo/bar.git" {
+		t.Errorf("Incorrect url for foo/bar/baz |%v|", goshMap["foo/bar/baz"].GithubUrl)
+	}
+
+	if goshMap["salt"].GithubUrl != "git@github.com/MediaMath/salt.git" {
 		t.Errorf("Incorrect url for salt", goshMap["salt"])
 	}
 }
@@ -42,7 +46,7 @@ func TestGetGoshMapMixOfImpliedAndExplicit(t *testing.T) {
 func TestImpliedGithubRepo(t *testing.T) {
 	implied, _ := impliedGithubRepo("github.com/MediaMath/foo")
 
-	if implied != "git@github.com:MediaMath/foo.git" {
+	if implied.GithubUrl != "git@github.com:MediaMath/foo.git" {
 		t.Errorf("Got:%v", implied)
 	}
 
@@ -51,7 +55,7 @@ func TestImpliedGithubRepo(t *testing.T) {
 func TestImpliedNoHostProducesGithubUrl(t *testing.T) {
 	implied, _ := impliedGithubRepo("bar/foo")
 
-	if implied != "git@github.com:bar/foo.git" {
+	if implied.GithubUrl != "git@github.com:bar/foo.git" {
 		t.Errorf("Got:%v", implied)
 	}
 }
@@ -59,19 +63,19 @@ func TestImpliedNoHostProducesGithubUrl(t *testing.T) {
 func TestImpliedSubpackage(t *testing.T) {
 	impliedWithHost, _ := impliedGithubRepo("github.com/bar/foo/baz")
 
-	if impliedWithHost != "git@github.com:bar/foo.git" {
+	if impliedWithHost.GithubUrl != "git@github.com:bar/foo.git" {
 		t.Errorf("Got:%v", impliedWithHost)
 	}
 
 	impliedNoHost, _ := impliedGithubRepo("bar/foo/baz")
 
-	if impliedNoHost != "git@github.com:bar/foo.git" {
+	if impliedNoHost.GithubUrl != "git@github.com:bar/foo.git" {
 		t.Errorf("Got:%v", impliedNoHost)
 	}
 
 	impliedDeep, _ := impliedGithubRepo("bar/foo/baz/goose/gander")
 
-	if impliedDeep != "git@github.com:bar/foo.git" {
+	if impliedDeep.GithubUrl != "git@github.com:bar/foo.git" {
 		t.Errorf("Got:%v", impliedDeep)
 	}
 }
