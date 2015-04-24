@@ -86,7 +86,7 @@ func MissingDependencies(pack Package) ([]Package, error) {
 	var deps []Package
 	var parsed missing
 	if err := PackageJSON(pack, &parsed); err != nil {
-		return deps, fmt.Errorf("Could not get Package JSON for %v in to determine MissingDependencies: %v", pack, err)
+		return deps, fmt.Errorf("Could not get Package JSON for %v to determine MissingDependencies: %v", pack, err)
 	}
 
 	return missingFromParsed(&parsed)
