@@ -195,9 +195,19 @@ func ExamplePackageJSON_unknown() {
 	}
 
 	if err := PackageJSON("moo/boo", &info); err != nil {
-		fmt.Printf("'go list -json moo/boo' fails.")
+		fmt.Printf("%v", err)
 	}
 
 	//Output:
-	//'go list -json moo/boo' fails.
+	//Cannot get json for 'moo/boo' as it is not a go package. Original error: EOF
+}
+
+func ExampleMissingDependencies_unknown() {
+	_, err := MissingDependencies("moo/boo")
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+
+	//Output:
+	//Could not determine missing dependencies for moo/boo: Cannot get json for 'moo/boo' as it is not a go package. Original error: EOF
 }
