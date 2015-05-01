@@ -86,7 +86,7 @@ func MissingDependencies(pack Package) ([]Package, error) {
 	var deps []Package
 	var parsed missing
 	if err := PackageJSON(pack, &parsed); err != nil {
-		return deps, fmt.Errorf("Could not get Package JSON for %v to determine MissingDependencies: %v", pack, err)
+		return deps, fmt.Errorf("Could not determine missing dependencies for %v: %v", pack, err)
 	}
 
 	return missingFromParsed(&parsed)
@@ -129,9 +129,19 @@ func Packages(paths ...PackagePattern) ([]Package, error) {
 // PackageJSON takes a SINGLE fully qualified package import path and decodes the 'go list -json' response.
 // See $GOROOT/src/cmd/go/list.go for documentation on the json output.
 func PackageJSON(pack Package, v interface{}) error {
-	return cmd.PipeWith(GoCmd("list", "-json", string(pack)), func(stdout io.Reader) error {
+	err := cmd.PipeWith(GoCmd("list", "-json", string(pack)), func(stdout io.Reader) error {
 		return json.NewDecoder(stdout).Decode(v)
 	})
+
+	if err != nil {
+		if !PackageExists(pack) {
+			return fmt.Errorf("Cannot get json for '%v' as it is not a go package. Original error: %v", pack, err)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // CoverageProfile creates a cover profile file for the provided package
