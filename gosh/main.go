@@ -164,7 +164,7 @@ func vcsClone(src string, destination string) error {
 }
 
 func to(location *Location) string {
-	return filepath.Join(os.Getenv("GOPATH"), "src", location.Path)
+	return filepath.Join(strings.Split(os.Getenv("GOPATH"), ":")[0], "src", location.Path)
 }
 
 func overwrite(destination string, copyTo func(string) error) error {
