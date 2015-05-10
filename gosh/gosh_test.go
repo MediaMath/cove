@@ -4,7 +4,10 @@ package main
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestGetGoshMapFromArgs(t *testing.T) {
 	goshMap, _ := getMap([]string{"foo/bar,git@github.com/MediaMath/foo.git", "salt,git@github.com/MediaMath/salt.git"})
@@ -90,4 +93,17 @@ func TestSingleParamImplicationFails(t *testing.T) {
 	if _, singleParam := impliedGithubRepo("foo"); singleParam == nil {
 		t.Errorf("Didnt get error on only host")
 	}
+}
+
+func TestToSingleAndMultiGoPath(t *testing.T) {
+	os.Setenv("GOPATH", "/foo/bar:/local/foo/bar")
+	if path := to(&Location{"github.com", "/projecta"}); path != "/foo/bar/src/projecta" {
+		t.Errorf("Didn't get the correct to path from to for a multi-path: %s", path)
+	}
+
+	os.Setenv("GOPATH", "/single/path")
+	if path := to(&Location{"github.com", "/projecta"}); path != "/single/path/src/projecta" {
+		t.Errorf("Didn't get the correct to path from to for a single path: %s", path)
+	}
+
 }
