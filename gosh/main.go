@@ -159,7 +159,7 @@ func clone(src string, destination string) error {
 }
 
 func vcsClone(src string, destination string) error {
-	fmt.Printf("git clone %v\n", src)
+	fmt.Printf("git clone %v %v\n", src, destination)
 	return cmd.Run(exec.Command("git", "clone", "--depth=1", src, destination))
 }
 
