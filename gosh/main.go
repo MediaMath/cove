@@ -109,35 +109,16 @@ func gosh(overwrite bool, goshMap packToLocation) bool {
 		if overwrite || !cove.PackageExists(pack) {
 			if logError(clone(location.GithubUrl, to(location))) {
 				hadError = true
-				continue
 			}
 		}
-
-		dependencies, deppErr := cove.MissingDependencies(pack)
-		if logError(deppErr) {
-			hadError = true
-			continue
-		}
-
-		if getDependencies(goshMap, dependencies) {
-			hadError = true
-		}
-
 	}
 
-	return hadError
-}
-
-func getDependencies(goshMap packToLocation, dependencies []cove.Package) bool {
-	hadError := false
-	for _, dep := range dependencies {
-		if _, inGoshMap := goshMap[dep]; inGoshMap {
-			continue
-		}
-
-		fmt.Printf("go get %v\n", dep)
-		if logError(cove.Get(dep)) {
-			hadError = true
+	for pack, _ := range goshMap {
+		if cove.PackageExists(pack) {
+			fmt.Printf("go get %v\n", pack)
+			if logError(cove.Get(pack)) {
+				hadError = true
+			}
 		}
 	}
 

@@ -6,7 +6,10 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/MediaMath/cove"
 )
 
 func TestGetGoshMapFromArgs(t *testing.T) {
@@ -109,4 +112,48 @@ func TestToSingleAndMultiGoPath(t *testing.T) {
 		t.Errorf("Didn't get the correct to path from to for a single path: %s", path)
 	}
 
+}
+
+func TestGoshInstallsMainPackagesLikeGoGetExplicit(t *testing.T) {
+	geckoPath := filepath.Join(cove.GetFirstGoPath(), "bin", "gecko")
+	os.Remove(geckoPath)
+
+	if _, err := os.Stat(geckoPath); !os.IsNotExist(err) {
+		t.Errorf("gecko wasn't removed")
+	}
+
+	goshMap, parseErr := getMap([]string{"github.com/MediaMath/cove/gecko"})
+	if parseErr != nil {
+		t.Errorf("%v", parseErr)
+	}
+
+	if gosh(false, goshMap) {
+		t.Errorf("Gosh failed")
+	}
+
+	if _, err := os.Stat(geckoPath); os.IsNotExist(err) {
+		t.Errorf("gecko wasn't installed")
+	}
+}
+
+func TestGoshInstallsMainPackagesLikeGoGetWildCard(t *testing.T) {
+	geckoPath := filepath.Join(cove.GetFirstGoPath(), "bin", "gecko")
+	os.Remove(geckoPath)
+
+	if _, err := os.Stat(geckoPath); !os.IsNotExist(err) {
+		t.Errorf("gecko wasn't removed")
+	}
+
+	goshMap, parseErr := getMap([]string{"github.com/MediaMath/cove/..."})
+	if parseErr != nil {
+		t.Errorf("%v", parseErr)
+	}
+
+	if gosh(false, goshMap) {
+		t.Errorf("Gosh failed")
+	}
+
+	if _, err := os.Stat(geckoPath); os.IsNotExist(err) {
+		t.Errorf("gecko wasn't installed")
+	}
 }
