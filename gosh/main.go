@@ -109,35 +109,16 @@ func gosh(overwrite bool, goshMap packToLocation) bool {
 		if overwrite || !cove.PackageExists(pack) {
 			if logError(clone(location.GithubUrl, to(location))) {
 				hadError = true
-				continue
 			}
 		}
-
-		dependencies, deppErr := cove.MissingDependencies(pack)
-		if logError(deppErr) {
-			hadError = true
-			continue
-		}
-
-		if getDependencies(goshMap, dependencies) {
-			hadError = true
-		}
-
 	}
 
-	return hadError
-}
-
-func getDependencies(goshMap packToLocation, dependencies []cove.Package) bool {
-	hadError := false
-	for _, dep := range dependencies {
-		if _, inGoshMap := goshMap[dep]; inGoshMap {
-			continue
-		}
-
-		fmt.Printf("go get %v\n", dep)
-		if logError(cove.Get(dep)) {
-			hadError = true
+	for pack, _ := range goshMap {
+		if cove.PackageExists(pack) {
+			fmt.Printf("go get %v\n", pack)
+			if logError(cove.Get(pack)) {
+				hadError = true
+			}
 		}
 	}
 
@@ -159,12 +140,12 @@ func clone(src string, destination string) error {
 }
 
 func vcsClone(src string, destination string) error {
-	fmt.Printf("git clone %v\n", src)
+	fmt.Printf("git clone %v %v\n", src, destination)
 	return cmd.Run(exec.Command("git", "clone", "--depth=1", src, destination))
 }
 
 func to(location *Location) string {
-	return filepath.Join(strings.Split(os.Getenv("GOPATH"), ":")[0], "src", location.Path)
+	return filepath.Join(cove.GetFirstGoPath(), "src", location.Path)
 }
 
 func overwrite(destination string, copyTo func(string) error) error {
