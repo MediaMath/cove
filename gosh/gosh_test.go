@@ -96,6 +96,9 @@ func TestSingleParamImplicationFails(t *testing.T) {
 }
 
 func TestToSingleAndMultiGoPath(t *testing.T) {
+	oldPath := os.Getenv("GOPATH")
+	defer os.Setenv("GOPATH", oldPath)
+
 	os.Setenv("GOPATH", "/foo/bar:/local/foo/bar")
 	if path := to(&Location{"github.com", "/projecta"}); path != "/foo/bar/src/projecta" {
 		t.Errorf("Didn't get the correct to path from to for a multi-path: %s", path)
