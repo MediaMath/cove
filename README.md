@@ -8,6 +8,8 @@ Unlike most go projects this one does have a dependency on the go development en
 
 ## gosh - Get Over SsH - simple script for getting go packages at supplied uri's.
 
+Note that gosh has issues being built with go1.8 and above. 
+
 ### Explicit ssh urls
 
 Gosh works by taking a package/git ssh url pair, seperated by a ','.
