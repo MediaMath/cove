@@ -1,5 +1,7 @@
 # Cove - Libraries & CLI's that wrap the go command.
 
+**Deprecated** - you should move to different solutions to these problems.
+
 This is a small set of wrapper libraries and cli's that wrap around the golang go command.
 
 ## Runtime dependencies
@@ -7,6 +9,8 @@ This is a small set of wrapper libraries and cli's that wrap around the golang g
 Unlike most go projects this one does have a dependency on the go development environment.  It will not work with just the runtime.
 
 ## gosh - Get Over SsH - simple script for getting go packages at supplied uri's.
+
+**Deprecated** - you should prefer either vendoring your dependencies explicitly in your repo or using one of the many golang dependency management tools.  We like dep for older versions of go and reluctantly use go mod for modern versions.
 
 Note that gosh has issues being built with go1.8 and above. 
 
